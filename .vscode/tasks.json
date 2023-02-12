@@ -1,0 +1,53 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+        {
+            "label": "Build NextStep (debug symbols, no warnings)",
+            "type": "shell",
+            "command": "RUSTFLAGS=-g cargo lbuild -r",
+            "presentation": {
+              "reveal": "always",
+              "panel": "new"
+            }
+        },
+        {
+            "label": "Run ",
+            "type": "shell",
+            "command": "cargo",
+            "args": ["run", "--release", "--", "--dev"],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": [
+            {
+                "owner": "rust",
+                "fileLocation": ["relative", "${workspaceRoot}"],
+                "pattern": {
+                "regexp": "^(.*):(\\d+):(\\d+):\\s+(\\d+):(\\d+)\\s+(warning|error):\\s+(.*)$",
+                "file": 1,
+                "line": 2,
+                "column": 3,
+                "endLine": 4,
+                "endColumn": 5,
+                "severity": 6,
+                "message": 7
+                }
+            }
+            ]
+        },
+		{
+			"type": "npm",
+			"script": "build",
+			"path": "dapp/set-in-stone",
+			"group": "build",
+			"problemMatcher": [],
+			"label": "npm: build - dapp/set-in-stone",
+			"detail": "webpack --config ./bundler/webpack.prod.js"
+		}
+	]
+}
