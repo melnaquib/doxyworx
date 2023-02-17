@@ -398,7 +398,7 @@ function addTasksToDiagram(fields, roles) {
         // modeling.createShape(participant, { x: 400, y: y + i * ( y + h) }, collaboration);
     }
 
-    for(const [i, row] of Object.entries(fields)) {
+    for(const [i, row] of Object.entries(field)) {
         for(const [j, field] of Object.entries(row)) {
             var participant = participants[field[0]];
             const task = i + j;

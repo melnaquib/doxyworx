@@ -11,6 +11,19 @@ function getUserEmail() {
   return email;
 }
 
+function metadata_set_origin_id(id) {
+  getDoc().getRange("A1").setNote(id);
+
+}
+
+function metadata_get_origin_id() {
+  return getDoc().getRange("A1").getNote();
+}
+
+function get_user_account() {
+  return get_email_account(getUserEmail());
+}
+
 function docProp(k) {
   return Drive.Properties.get(docId, k, {visibility: 'PUBLIC'}).value;
 }

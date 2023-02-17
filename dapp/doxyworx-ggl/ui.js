@@ -21,27 +21,13 @@ function addMenus() {
       .addItem('🖄 Make Workflow', 'make_workflow');
 
   var menuMain = ui.createMenu('🏗 DoxyWorx')
-      .addItem('🏗 Doxy Worx', 'workflowMake')
+      .addItem('🏗 Doxy Worx Start', 'workflowMake')
+      .addSeparator()
+      .addItem('🏗 Doxy Worx Step', 'workflowStep')
       .addSeparator()
       .addSubMenu(menuTasks)
       .addItem('About DoxyWorx...', "show_about")
       .addToUi();
-}
-  
-function addMenus_start() {
-  var ui = getUi();
-
-  ui.createMenu('👨‍⚕️ Doctor @ReadyVU')
-
-      .addItem('🔐 Enter Access Code…', 'start_ui')
-      .addSeparator()
-
-      .addItem('Save Template', 'openSelectTemplate')
-      .addSeparator()
-
-
-      .addToUi();
-
 }
 
 function show_about() {

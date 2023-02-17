@@ -1,4 +1,4 @@
-function modelerOpen(url) {
+function modelerOpen(url, size) {
   var html = '<html> <head>' +
     '<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests" />'
     + '</head><body>'
@@ -8,10 +8,14 @@ function modelerOpen(url) {
     ;
 
   ;
+
+  if (undefined === undefined) {
+    size = 10000;
+  } 
   var html_output = HtmlService.createTemplate(html);
   html_output = html_output.evaluate()
   // .setWidth(1024).setHeight(800)
-  .setWidth(10000).setHeight(10000)
+  .setWidth(size).setHeight(size)
   ;
   // html =  template.evaluate().setSandboxMode(HtmlService.SandboxMode.IFRAME);
 

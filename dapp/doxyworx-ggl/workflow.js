@@ -1,7 +1,7 @@
 function getFields() {
   var fields = SpreadsheetApp.getActive().getDataRange().getNotes();
   const sheet = getSheet();
-  notes = notes.reduce( (map, row, i ) => {
+  fields = fields.reduce( (map, row, i ) => {
     return row.reduce( (map, note, j ) => {
       if(note && !(0 == i && 0 == j) ) {
         var k = String.fromCharCode('A'.charCodeAt() + j);
@@ -15,11 +15,11 @@ function getFields() {
     }, map);
     return map;
   }, {});
-  return notes;
+  return fields;
 }
 
 function workflowMake() {
-  var notes = sheetNotes();
+  var fields = getFields();
   var roles = {};
   // roles = {
   //   "buyer": "BUYER1",
@@ -27,9 +27,9 @@ function workflowMake() {
   //   "shipping": "SHIPPING1",
   // }
 
-  for(var i in notes) {
-    for(var j in notes[i]) {
-      var role = notes[i][j];
+  for(var i in fields) {
+    for(var j in fields[i]) {
+      var role = fields[i][j][0];
       if(!(role in roles)) {
         var account = getUi().prompt("Who is " + role +"?");
         roles[role] = account;
@@ -39,17 +39,19 @@ function workflowMake() {
   
   var id = SpreadsheetApp.getActive().getId();
 
-  getDoc().getRange(1, 1).setNote(id);
   metadata_set_origin_id(id);
 
-  var url = get_modeler_url(id, notes, roles);
+  var url = get_modeler_url(id, fields, roles);
   console.log(url);
 
-  modelerOpen(id, notes);
+  modelerOpen(url);
 }
 
 function workflowStep() {
   var fields = getFields();
+
+  var email = get_user_email();
+  var account = get_user_account();
 
   var roles = {};
   // roles = {
@@ -70,10 +72,9 @@ function workflowStep() {
   
   var id = SpreadsheetApp.getActive().getId();
 
-  getDoc().getRange(1, 1).setNote(id);
   metadata_set_origin_id(id);
 
-  var url = get_modeler_url(id, fields, roles);
+  var url = get_modeler_url_step(id, fields, roles);
   console.log(url);
 
   modelerOpen(id, notes);
