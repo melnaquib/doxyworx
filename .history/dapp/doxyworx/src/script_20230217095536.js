@@ -4,13 +4,11 @@ const { Keyring } = require('@polkadot/keyring');
 const Alice = '5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY';
 
 contact_book_email_account = {
-    "doxyworx.test.bob@gmail.com": ["//Bob"],
-    "doxyworx.test.charlie@gmail.com": ["//Charlie"],
-    "doxyworx.test.davebob@gmail.com": ["//Dave"],
+    "": ""
 }
 
 function get_email_account(account_email) {
-    return contact_book_email_account[account_email][0];
+    return contact_book_email_account[account_email];
 }
 
 var api = null;

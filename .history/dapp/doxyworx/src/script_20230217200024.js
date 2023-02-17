@@ -3,6 +3,16 @@ import { ApiPromise, WsProvider } from '@polkadot/api'
 const { Keyring } = require('@polkadot/keyring');
 const Alice = '5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY';
 
+contact_book_email_account = {
+    "doxyworx.test.bob@gmail.com": ["//Alice"],
+    "doxyworx.test.bob@gmail.com": ["//Bob"],
+    "doxyworx.test.bob@gmail.com": ["//Dave"],
+}
+
+function get_email_account(account_email) {
+    return contact_book_email_account[account_email][0];
+}
+
 var api = null;
 
 var req_ = (new URL(document.location)).searchParams;
@@ -67,9 +77,8 @@ async function main () {
         }
     });
   });
-  
+
 }
-main().catch(console.error);
 
 function uploadFile(e) {
     var file = e.target.files[0];
@@ -119,8 +128,6 @@ var bpmnModeler = new BpmnJS({
         bindTo: window
     }
 });
-
-openDiagram(EMPTY_BPMN, loadDoc);
 
 function step(deprocess, action, account) {
 
@@ -251,7 +258,10 @@ function start() {
         const keyring = new Keyring({ type: 'sr25519' });
         const alice = keyring.addFromUri('//Alice');
 
-        api.tx.nextStep.start(bpmn, "")
+        // const DOC_ID = req["doc"];
+        const DOC_ID = 0;
+
+        api.tx.nextStep.start(bpmn, DOC_ID)
         .signAndSend(alice, function(status, events, dispatchError ) {
             // status would still be set, but in the case of error we can shortcut
             // to just check it (so an error would indicate InBlock or Finalized)
@@ -433,12 +443,39 @@ function addTasksToDiagram(fields, roles) {
 }
 
 function loadDoc() {
-    var doc_id = "";
     var tasks = {};
     console.log(req);
     addTasksToDiagram(req['fields'], req['roles']);
     // addTaksToDiagram(req['tasks']);
     // assignRoles(req['roles']);
-    console.log(doc_id);
 }
 
+main().catch(console.error);
+
+function get_doc_deprocess(doc) {
+    var deprocess = api.query.nextStep.deprocessCount();
+
+    //TODO, loop see which deprocess has doc id on its start step data
+    return deprocess;
+}
+
+function on_step_cmd() {
+    var doc = req["doc"];
+    var deprocess = get_doc_deprocess(doc);
+
+    var action = api.query.nextStep.deProcessCurrent(u128);
+    var account_email = req["account_email"];
+    var account = get_email_account(account_email);
+
+
+
+    var action = req["action"];
+
+    step(deprocess, action, account);
+}
+const CMD = req["cmd"];
+if("step" == CMD) {
+    on_step_cmd();
+} else if("start" == CMD) {
+    openDiagram(EMPTY_BPMN, loadDoc);
+}
