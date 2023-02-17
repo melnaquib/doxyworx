@@ -5,6 +5,13 @@
     "version": "0.2.0",
     "configurations": [
       {
+        "command": "npm run dev",
+        "name": "doxyworx npm run dev",
+        "request": "launch",
+        "type": "node-terminal",
+        "cwd": "${workspaceFolder}/dapp/doxyworx/",
+      },
+      {
         "type": "lldb",
         "request": "launch",
         "name": "Build & Launch NextStep Node (Linux)",
@@ -56,6 +63,6 @@
         "sourceMap": {
           "/rustc/*": "${dbgconfig:rustc_path}"
         }
-      }
+      },
 ]
 }

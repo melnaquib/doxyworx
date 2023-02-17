@@ -33,7 +33,6 @@ Target is to have a zero footprint. Any person with no prior blockchain specific
 Example enabled sheet;
 https://docs.google.com/spreadsheets/d/1Ih1CDm6MU5PXek88yZYDW1lZQhSYv4KD2L_b-JNbUV4
 
-
 ## Demo Videos
 
 **TODO**

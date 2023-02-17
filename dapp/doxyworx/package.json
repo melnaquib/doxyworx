@@ -6,6 +6,7 @@
         "dev": "webpack serve --config ./bundler/webpack.dev.js"
     },
     "dependencies": {
+        "@apollo/client": "^3.4.0",
         "@babel/core": "^7.17.10",
         "@babel/preset-env": "^7.17.10",
         "@polkadot/api": "^8.12.2",

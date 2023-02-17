@@ -3,20 +3,7 @@ import { ApiPromise, WsProvider } from '@polkadot/api'
 const { Keyring } = require('@polkadot/keyring');
 const Alice = '5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY';
 
-contact_book_email_account = {
-    "": ""
-}
-
-function get_email_account(account_email) {
-    return contact_book_email_account[account_email];
-}
-
 var api = null;
-
-var req_ = (new URL(document.location)).searchParams;
-req_ = req_.get("req");
-req_ = decodeURIComponent(req_);
-const req = JSON.parse(req_);
 
 async function main () {
   // Initialise the provider to connect to the local node
@@ -75,8 +62,9 @@ async function main () {
         }
     });
   });
-
+  
 }
+main().catch(console.error);
 
 function uploadFile(e) {
     var file = e.target.files[0];
@@ -99,26 +87,15 @@ function upload() {
     inputFile.click();
 }
 
-// const EMPTY_BPMN = 
-// `<?xml version="1.0" encoding="UTF-8"?>
-// <bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" id="Definitions_0sw2gw1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="bpmn-js (https://demo.bpmn.io)" exporterVersion="9.3.1">
-//   <bpmn:process id="Process_01zbi84" />
-//   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
-//     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_01zbi84" />
-//   </bpmndi:BPMNDiagram>
-// </bpmn:definitions>
-// `;
-
 const EMPTY_BPMN = 
 `<?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="3.3.5">
-  <bpmn:process id="Process_1" isExecutable="true">
-  </bpmn:process>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" id="Definitions_0sw2gw1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="bpmn-js (https://demo.bpmn.io)" exporterVersion="9.3.1">
+  <bpmn:process id="Process_01zbi84" />
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
-    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_1">
-    </bpmndi:BPMNPlane>
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_01zbi84" />
   </bpmndi:BPMNDiagram>
-</bpmn:definitions>`;
+</bpmn:definitions>
+`;
 
 var bpmnModeler = new BpmnJS({
     container: '#canvas',
@@ -126,6 +103,9 @@ var bpmnModeler = new BpmnJS({
         bindTo: window
     }
 });
+
+openDiagram(EMPTY_BPMN);
+
 
 function step(deprocess, action, account) {
 
@@ -214,7 +194,7 @@ function download() {
  * @param {String} bpmnXML diagram to display
  */
  
-function openDiagram(bpmnXML, cb) {
+function openDiagram(bpmnXML) {
     // import diagram
     bpmnModeler.importXML(bpmnXML, function (err) {
         if (err) {
@@ -222,26 +202,22 @@ function openDiagram(bpmnXML, cb) {
         }
         // access modeler components
         var canvas = bpmnModeler.get('canvas');
-        // var overlays = bpmnModeler.get('overlays');
+        var overlays = bpmnModeler.get('overlays');
         // zoom to fit full viewport
         canvas.zoom('fit-viewport');
 
         load_ids_names();
 
         // attach an overlay to a node
-        // overlays.add('SCAN_OK', 'note', {
-        //     position: {
-        //         bottom: 0,
-        //         right: 0
-        //     },
-        //     html: '<div class="diagram-note">Mixed up the labels?</div>'
-        // });
+        overlays.add('SCAN_OK', 'note', {
+            position: {
+                bottom: 0,
+                right: 0
+            },
+            html: '<div class="diagram-note">Mixed up the labels?</div>'
+        });
         // add marker
-        // canvas.addMarker('SCAN_OK', 'needs-discussion');
-
-        if(cb) {
-            cb();
-        }
+        canvas.addMarker('SCAN_OK', 'needs-discussion');
     });
 }
 
@@ -256,10 +232,7 @@ function start() {
         const keyring = new Keyring({ type: 'sr25519' });
         const alice = keyring.addFromUri('//Alice');
 
-        // const DOC_ID = req["doc"];
-        const DOC_ID = 0;
-
-        api.tx.nextStep.start(bpmn, DOC_ID)
+        api.tx.nextStep.start(bpmn, "")
         .signAndSend(alice, function(status, events, dispatchError ) {
             // status would still be set, but in the case of error we can shortcut
             // to just check it (so an error would indicate InBlock or Finalized)
@@ -339,141 +312,3 @@ $('#startButton').click(start);
 $('#uploadButton').click(upload);
 $('#uploadButton').on('change', upload);
 
-function addTasksToDiagram(fields, roles) {
-    var x = 30;
-    var y = 20;
-    var w = 600;
-    var h = 200;
-
-    var canvas = bpmnModeler.get('canvas');
-    var elementFactory = bpmnModeler.get('elementFactory');
-    var elementRegistry = bpmnModeler.get('elementRegistry');
-    var modeling = bpmnModeler.get('modeling');
-    var autoPlace = bpmnModeler.get('autoPlace');
-    // var root = canvas.getRootElement();
-
-    canvas.zoom("fit-viewport");
-
-    // var task = elementFactory.createBpmnElement("shape", {
-    //     type: "bpmn:Task",
-    //     x: 350,
-    //     y: 100
-    // });
-    
-
-    var participants = {}
-    
-    var roleNames = Object.keys(roles);
-    var roleName0 = roleNames[0];
-
-    var process = elementRegistry.get("Process_1");
-    // startEvent = elementRegistry.get("StartEvent_1");
-
-    var participant = elementFactory.createParticipantShape({
-      type: "bpmn:Participant"
-    });
-    participant.businessObject.name = roleName0;
-    participants[roleName0] = participant;
-
-    modeling.createShape(participant, { x: x, y: y }, process);
-
-    // return;
-
-    // var participant2 = elementFactory.createParticipantShape({
-    //     type: "bpmn:Participant"
-    //   });
-    //   modeling.createShape(participant2, { x: 400, y: 100 }, process);
-
-    const collaboration = elementRegistry.filter( e => "bpmn:Collaboration" == e.type)[0];
-
-    var i = 1;
-    for(var i = 1; i < roleNames.length; ++i) {
-        var roleName = roleNames[i];
-        var participant = elementFactory.createParticipantShape({type: "bpmn:Participant"});
-        participant.businessObject.name = roleName;
-        modeling.createShape(participant, { x: 400, y: y + i * ( y + h) }, collaboration);
-        participants[roleName] = participant;
-        // modeling.createShape(participant, { x: 400, y: y + i * ( y + h) }, collaboration);
-    }
-
-    for(const [i, row] of Object.entries(field)) {
-        for(const [j, field] of Object.entries(row)) {
-            var participant = participants[field[0]];
-            const task = i + j;
-
-            var taskShape = elementFactory.createBpmnElement("shape", {
-                type: "bpmn:Task",
-                x: participant.x + 150,
-                y: participant.y + 50
-            });
-            taskShape.businessObject.name = task;
-            canvas.addShape(taskShape, participant);
-    
-        }
-    }
-
-    return;
-
-    for(const[task, role] of Object.entries(tasks)) {
-        var participant = participants[role];
-        // var taskShape = elementFactory.createShape({type: "bpmn:Task"})
-        // // modeling.createShape(participant2, { x: 400, y: y + i * ( y + h) }, collaboration);
-        // autoPlace.append(task, participant);
-        // taskShape.businessObject.name = task;
-            
-        a = b;
-
-        var taskShape = elementFactory.createBpmnElement("shape", {
-            type: "bpmn:Task",
-            x: 10,
-            y: 10
-        });
-        taskShape.businessObject.name = task;
-        canvas.addShape(taskShape, participant);
-        // autoPlace.append(task, participant);
-
-    }
-
-    // const participant2 = elementFactory.createParticipantShape({type: "bpmn:Participant"});
-    // modeling.createShape(participant2, { x: 400, y: 500 }, collaboration);
-  
-
-}
-
-function loadDoc() {
-    var tasks = {};
-    console.log(req);
-    addTasksToDiagram(req['fields'], req['roles']);
-    // addTaksToDiagram(req['tasks']);
-    // assignRoles(req['roles']);
-}
-
-main().catch(console.error);
-
-function get_doc_deprocess(doc) {
-    var deprocess = api.query.nextStep.deprocessCount();
-
-    //TODO, loop see which deprocess has doc id on its start step data
-    return deprocess;
-}
-
-function on_step_cmd() {
-    var doc = req["doc"];
-    var deprocess = get_doc_deprocess(doc);
-
-    var action = api.query.nextStep.deProcessCurrent(u128);
-    var account_email = req["account_email"];
-    var account = get_email_account(account_email);
-
-
-
-    var action = req["action"];
-
-    step(deprocess, action, account);
-}
-const CMD = req["cmd"];
-if("step" == CMD) {
-    on_step_cmd();
-} else if("start" == CMD) {
-    openDiagram(EMPTY_BPMN, loadDoc);
-}
