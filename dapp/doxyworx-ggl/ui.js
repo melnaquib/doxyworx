@@ -25,6 +25,8 @@ function addMenus() {
       .addSeparator()
       .addItem('🏗 Doxy Worx Step', 'workflowStep')
       .addSeparator()
+      .addItem('🏗 Make Doxy Worx enabled document', 'doc_add_doxyworx_ui')
+      .addSeparator()
       .addSubMenu(menuTasks)
       .addItem('About DoxyWorx...', "show_about")
       .addToUi();

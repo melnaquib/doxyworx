@@ -4,21 +4,24 @@ const { Keyring } = require('@polkadot/keyring');
 const Alice = '5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY';
 
 const contact_book_email_account = {
+    "doxyworx@gmail.com": ["//Alice"],
     "doxyworx.test.bob@gmail.com": ["//Bob"],
     "doxyworx.test.charlie@gmail.com": ["//Charlie"],
     "doxyworx.test.davebob@gmail.com": ["//Dave"],
 }
 
-function get_email_account(account_email) {
-    return contact_book_email_account[account_email][0];
+function contact_book_get_email_account(email) {
+    return contact_book_email_account[email][0];
 }
 
 var api = null;
+const keyring = new Keyring({ type: 'sr25519' });
 
 var req_ = (new URL(document.location)).searchParams;
 req_ = req_.get("req");
 req_ = decodeURIComponent(req_);
 const req = JSON.parse(req_);
+const CMD = req["cmd"];
 
 async function main () {
   // Initialise the provider to connect to the local node
@@ -60,6 +63,7 @@ async function main () {
 //     }
 //   });
 
+
   api.query.system.events((events) => {
     console.log(`\nReceived ${events.length} events:`);
 
@@ -77,6 +81,12 @@ async function main () {
         }
     });
   });
+
+  if("step" == CMD) {
+    await on_step_cmd();
+  } else if("start" == CMD) {
+    // openDiagram(EMPTY_BPMN, loadDoc);
+  }
 
 }
 
@@ -129,13 +139,16 @@ var bpmnModeler = new BpmnJS({
     }
 });
 
-function step(deprocess, action, account) {
+function step(deprocess, action, account, action_data) {
 
-    const keyring = new Keyring({ type: 'sr25519' });
-    const step_account = keyring.addFromUri('//' + account);
+    if (!action_data) {
+        action_data = "action_data";
+    }
 
-    api.tx.nextStep.step(deprocess, action, "action_data")
-    .signAndSend(step_account, function(status, events, dispatchError ) {
+    const step_account = keyring.addFromUri(account);
+
+    api.tx.nextStep.step(deprocess, action, action_data)
+    .signAndSend(step_account, { nonce: -1 }, function(status, events, dispatchError ) {
         if (dispatchError) {
             if (dispatchError.isModule) {
                 // for module errors, we have the section indexed, lookup
@@ -247,7 +260,68 @@ function openDiagram(bpmnXML, cb) {
     });
 }
 
+function assignRoles() {
+    const owner = keyring.addFromUri(req["account"]);
+    for(const[role, accountName] of Object.entries(req["roles"])) {
+
+        const account = keyring.addFromUri(accountName).address;
+        api.tx.nextStep.assign(role, account)
+        .signAndSend(owner, { nonce: -1 }, function(status, events, dispatchError ) {
+            if (dispatchError) {
+              if (dispatchError.isModule) {
+                // for module errors, we have the section indexed, lookup
+                const decoded = api.registry.findMetaError(dispatchError.asModule);
+                const { docs, name, section } = decoded;
+        
+                console.log(`${section}.${name}: ${docs.join(' ')}`);
+              } else {
+                // Other, CannotLookup, BadOrigin, no extra info
+                console.log(dispatchError.toString());
+              }
+            }
+          });
+
+    };
+
+}
+
+async function get_doc_deprocess(doc) {
+    var deprocess = await api.query.nextStep.deProcessCount();
+
+    //TODO, loop see which deprocess has doc id on its start step data
+    return deprocess;
+}
+
+async function on_step_cmd() {
+    var doc = req["doc"];
+    var deprocess = await get_doc_deprocess(doc);
+
+
+    var cell = req["cell"];
+
+    // var action = await api.query.nextStep.deProcessCurrent(deprocess);
+    var action = cell[0] + cell[1];
+    var account_email = req["user_email"];
+    // const account = keyring.addFromUri(req["account"]);
+    const account = req["account"];
+
+    // var action = req["action"];
+
+    var val_ = req["val"] + "";
+    var val = parseInt(val_);
+    if(isNaN(val)) {
+        val = (new TextEncoder("ascii")).encode(val_);
+        val = U256(val);
+    }
+
+    console.log("STEP", deprocess, action, account, val);
+
+    step(deprocess, action, account, val);
+}
+
 function start() {
+    const owner = keyring.addFromUri(req["account"]);
+
     bpmnModeler.saveXML({ format: true }, function (err, bpmn) {
         if (err) {
             return console.error('could not save BPMN 2.0 diagram', err);
@@ -255,14 +329,13 @@ function start() {
 
         openDiagram(bpmn);
 
-        const keyring = new Keyring({ type: 'sr25519' });
-        const alice = keyring.addFromUri('//Alice');
-
         // const DOC_ID = req["doc"];
         const DOC_ID = 0;
 
+        // assignRoles();
+
         api.tx.nextStep.start(bpmn, DOC_ID)
-        .signAndSend(alice, function(status, events, dispatchError ) {
+        .signAndSend(owner, function(status, events, dispatchError ) {
             // status would still be set, but in the case of error we can shortcut
             // to just check it (so an error would indicate InBlock or Finalized)
             if (dispatchError) {
@@ -452,30 +525,8 @@ function loadDoc() {
 
 main().catch(console.error);
 
-function get_doc_deprocess(doc) {
-    var deprocess = api.query.nextStep.deprocessCount();
-
-    //TODO, loop see which deprocess has doc id on its start step data
-    return deprocess;
-}
-
-function on_step_cmd() {
-    var doc = req["doc"];
-    var deprocess = get_doc_deprocess(doc);
-
-    var action = api.query.nextStep.deProcessCurrent(u128);
-    var account_email = req["account_email"];
-    var account = get_email_account(account_email);
-
-
-
-    var action = req["action"];
-
-    step(deprocess, action, account);
-}
-const CMD = req["cmd"];
 if("step" == CMD) {
-    on_step_cmd();
+    // on_step_cmd();
 } else if("start" == CMD) {
     openDiagram(EMPTY_BPMN, loadDoc);
 }

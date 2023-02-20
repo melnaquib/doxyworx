@@ -6,7 +6,7 @@ function getSheet() {
   return getDoc().getActiveSheet();
 }
 
-function getUserEmail() {
+function get_user_email() {
   var email = Session.getActiveUser().getEmail();
   return email;
 }
@@ -21,7 +21,7 @@ function metadata_get_origin_id() {
 }
 
 function get_user_account() {
-  return get_email_account(getUserEmail());
+  return contact_book_get_email_account(get_user_email());
 }
 
 function docProp(k) {

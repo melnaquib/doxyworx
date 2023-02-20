@@ -31,17 +31,16 @@ function workflowMake() {
     for(var j in fields[i]) {
       var role = fields[i][j][0];
       if(!(role in roles)) {
-        var account = getUi().prompt("Who is " + role +"?");
+        var account = getUi().prompt("Who is " + role +"?").getResponseText();
         roles[role] = account;
       }      
     }    
   }
   
   var id = SpreadsheetApp.getActive().getId();
-
   metadata_set_origin_id(id);
 
-  var url = get_modeler_url(id, fields, roles);
+  var url = get_modeler_url_start(id, fields, roles, get_user_email(), get_user_account());
   console.log(url);
 
   modelerOpen(url);
@@ -53,29 +52,18 @@ function workflowStep() {
   var email = get_user_email();
   var account = get_user_account();
 
-  var roles = {};
-  // roles = {
-  //   "buyer": "BUYER1",
-  //   "seller": "SELLER1",
-  //   "shipping": "SHIPPING1",
-  // }
+  var id = metadata_get_origin_id();
 
-  for(var i in fieilds) {
-    for(var j in fieilds[i]) {
-      var role = fieilds[i][j][0];
-      if(!(role in roles)) {
-        var account = getUi().prompt("Who is " + role +"?");
-        roles[role] = account;
-      }      
-    }    
-  }
-  
-  var id = SpreadsheetApp.getActive().getId();
+  const cell = getDoc().getCurrentCell();
+  var y = cell.getRow();
+  var x = cell.getColumn();
+  var x = String.fromCharCode('A'.charCodeAt() + x - 1);
+  console.log(x, y);
+  const value = cell.getDisplayValue();
 
-  metadata_set_origin_id(id);
-
-  var url = get_modeler_url_step(id, fields, roles);
+  var url = get_modeler_url_step(id, fields, email, account, [x, y], value);
   console.log(url);
+  Logger.log(url);
 
-  modelerOpen(id, notes);
+  modelerOpen(url, 10);
 }

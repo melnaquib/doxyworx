@@ -2,6 +2,7 @@ const path = require('path')
 const { merge } = require('webpack-merge')
 const commonConfiguration = require('./webpack.common.js')
 const portFinderSync = require('portfinder-sync')
+const fs = require('fs');
 
 const infoColor = (_message) =>
 {
@@ -19,12 +20,15 @@ module.exports = merge(
         },
         devServer:
         {
-            host: 'local-ip',
+            // host: 'local-ip',
+            // host: '0.0.0.0',
+            host: '127.0.0.1',
+            // public: 'local.api.example.com',
+            // public: 'doxyworx.com',
             port: portFinderSync.getPort(8080),
             open: true,
-            https: false,
+            https: true,
             allowedHosts: 'all',
-            hot: false,
             watchFiles: ['src/**', 'static/**'],
             static:
             {
@@ -50,11 +54,19 @@ module.exports = merge(
 
                 return middlewares
             },
+            https: {
+                key: fs.readFileSync('/home/ubuntu/access/doxyworx_com.key'),
+                cert: fs.readFileSync('/home/ubuntu/access/crt/doxyworx_com.crt'),
+            },
             headers: {
                 "Access-Control-Allow-Origin": "*",
                 "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
                 "Access-Control-Allow-Headers": "X-Requested-With, content-type, Authorization"
-            }
+            },
+
+            // reload
+            hot: false,
+            liveReload: false
             
         }
     }
