@@ -19,3 +19,6 @@ node_modules
 ./dapp/set-in-stone/node_modules
 
 **/target_*/
+
+.history/
+**/node_modules*/

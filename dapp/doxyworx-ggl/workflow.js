@@ -55,13 +55,15 @@ function workflowStep() {
   var id = metadata_get_origin_id();
 
   const cell = getDoc().getCurrentCell();
+
+
   var y = cell.getRow();
   var x = cell.getColumn();
   var x = String.fromCharCode('A'.charCodeAt() + x - 1);
   console.log(x, y);
-  const value = cell.getDisplayValue();
+  const val = cell.getValue();
 
-  var url = get_modeler_url_step(id, fields, email, account, [x, y], value);
+  var url = get_modeler_url_step(id, fields, email, account, [x, y], val);
   console.log(url);
   Logger.log(url);
 

@@ -29,6 +29,12 @@ async function main () {
 
   // Create the API and wait until ready
   api = await ApiPromise.create({ provider });
+  if("step" == CMD) {
+    // on_step_cmd();
+} else if("start" == CMD) {
+    assignRoles();
+    // openDiagram(EMPTY_BPMN, loadDoc);
+}
 
   // Retrieve the chain & node information information via rpc calls
   const [chain, nodeName, nodeVersion] = await Promise.all([
@@ -139,7 +145,7 @@ var bpmnModeler = new BpmnJS({
     }
 });
 
-function step(deprocess, action, account, action_data) {
+async function step(deprocess, action, account, action_data) {
 
     if (!action_data) {
         action_data = "action_data";
@@ -147,8 +153,11 @@ function step(deprocess, action, account, action_data) {
 
     const step_account = keyring.addFromUri(account);
 
-    api.tx.nextStep.step(deprocess, action, action_data)
-    .signAndSend(step_account, { nonce: -1 }, function(status, events, dispatchError ) {
+    let { data: { free: previousFree }, nonce: previousNonce } = await api.query.system.account(Alice);
+
+
+    await api.tx.nextStep.step(deprocess, action, action_data)
+    .signAndSend(step_account, function(status, events, dispatchError ) {
         if (dispatchError) {
             if (dispatchError.isModule) {
                 // for module errors, we have the section indexed, lookup
@@ -260,28 +269,41 @@ function openDiagram(bpmnXML, cb) {
     });
 }
 
-function assignRoles() {
+async function assignRoles() {
     const owner = keyring.addFromUri(req["account"]);
+
+    // let { data: { free: previousFree }, nonce : previousNonce } = await api.query.system.account(owner.address);
+
+    // const NONCE_BASE = await api.rpc.system.accountNextIndex(owner.address);
+    // const NONCE_BASE = await api.rpc.system.accountNextIndex(sender);
+
+    var i = 0;
     for(const[role, accountName] of Object.entries(req["roles"])) {
 
         const account = keyring.addFromUri(accountName).address;
-        api.tx.nextStep.assign(role, account)
-        .signAndSend(owner, { nonce: -1 }, function(status, events, dispatchError ) {
-            if (dispatchError) {
-              if (dispatchError.isModule) {
-                // for module errors, we have the section indexed, lookup
-                const decoded = api.registry.findMetaError(dispatchError.asModule);
-                const { docs, name, section } = decoded;
+        // const nonce = previousNonce + i;
+        const nonce = await api.rpc.system.accountNextIndex(owner.address);
+        var res = await api.tx.nextStep.assign(role, account)
+        .signAndSend(owner, { nonce } );
+        // , function(status, events, dispatchError ) {
+        //     if (dispatchError) {
+        //       if (dispatchError.isModule) {
+        //         // for module errors, we have the section indexed, lookup
+        //         const decoded = api.registry.findMetaError(dispatchError.asModule);
+        //         const { docs, name, section } = decoded;
         
-                console.log(`${section}.${name}: ${docs.join(' ')}`);
-              } else {
-                // Other, CannotLookup, BadOrigin, no extra info
-                console.log(dispatchError.toString());
-              }
-            }
-          });
+        //         console.log(`${section}.${name}: ${docs.join(' ')}`);
+        //       } else {
+        //         // Other, CannotLookup, BadOrigin, no extra info
+        //         console.log(dispatchError.toString());
+        //       }
+        //     }
+        //   });
+          console.log("debug: assignRoles: ", role, account, res);
+          i = i + 1;
+        };
+    console.log("debug: assignRoles: end")
 
-    };
 
 }
 
@@ -319,8 +341,10 @@ async function on_step_cmd() {
     step(deprocess, action, account, val);
 }
 
-function start() {
+async function start() {
     const owner = keyring.addFromUri(req["account"]);
+
+    // await assignRoles();
 
     bpmnModeler.saveXML({ format: true }, function (err, bpmn) {
         if (err) {
@@ -332,7 +356,7 @@ function start() {
         // const DOC_ID = req["doc"];
         const DOC_ID = 0;
 
-        // assignRoles();
+        // const nonce = await api.rpc.system.accountNextIndex(owner.address);
 
         api.tx.nextStep.start(bpmn, DOC_ID)
         .signAndSend(owner, function(status, events, dispatchError ) {
@@ -528,5 +552,6 @@ main().catch(console.error);
 if("step" == CMD) {
     // on_step_cmd();
 } else if("start" == CMD) {
+    // assignRoles();
     openDiagram(EMPTY_BPMN, loadDoc);
 }

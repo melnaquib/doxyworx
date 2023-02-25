@@ -12,12 +12,13 @@ function get_user_email() {
 }
 
 function metadata_set_origin_id(id) {
-  getDoc().getRange("A1").setNote(id);
+  getDoc().addDeveloperMetadata("DOXYWORX_doc_origin", id);
 
 }
 
 function metadata_get_origin_id() {
-  return getDoc().getRange("A1").getNote();
+  //TODO, lookup key
+  return getDoc().getDeveloperMetadata()[0].getValue();
 }
 
 function get_user_account() {
